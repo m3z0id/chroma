@@ -8,7 +8,10 @@
 #include <functional>
 
 #include "BMPHeaders.h"
-#include "colorModifiers.h"
+#include "args/cmdlineParser.h"
+#include "args/colorspaceValueParser.h"
+#include "color/colorModifiers.h"
+#include "datatypes/Options.h"
 
 void calculateBMPRow(const BMPDefaultInfoHeader& infoHeader, uint32_t& rowUnpadded, uint32_t& padding) {
     uint16_t bitCount = infoHeader.core.size == sizeof(BMPCoreHeader) ? infoHeader.core.bitCount : infoHeader.v1.bitCount;
@@ -48,65 +51,19 @@ bool loadBMP(const std::string& filename, std::vector<char>& out, std::streamsiz
 }
 
 int main(int argc, char** argv) {
-    std::string filepath;
-    std::string outputFile;
-    std::function modifierFunction = rgbInvert;
-    std::string defaultSuffix = "RGBInverted";
-    bool printInfo = false;
+    std::optional<Options> options = parseCommandLineArgs(argc, argv);
 
-    static struct option longOptions[] = {
-        {"file", required_argument, nullptr, 'f'},
-        {"output", optional_argument, nullptr, 'o'},
-        {"info", no_argument, nullptr, 'i'},
-        {"invert-rgb", no_argument, nullptr, 'r'},
-        {"invert-hue", no_argument, nullptr, 'u'},
-        {"invert-oklab", no_argument, nullptr, 'l'},
-        {"flip-oklab-channels", no_argument, nullptr, 'c'},
-        {nullptr, 0, nullptr, 0}
-    };
-
-    int opt;
-    int optIndex;
-    while ((opt = getopt_long(argc, argv, "f:o:irulc", longOptions, &optIndex)) != -1) {
-        switch (opt) {
-            case 'f':
-                filepath = optarg;
-                break;
-            case 'o':
-                outputFile = optarg;
-                break;
-            case 'i':
-                printInfo = true;
-                break;
-            case 'r':
-                modifierFunction = rgbInvert;
-                break;
-            case 'u':
-                modifierFunction = hueInvert;
-                defaultSuffix = "HSLHueInverted";
-                break;
-            case 'l':
-                modifierFunction = oklabInvert;
-                defaultSuffix = "OklabHueInverted";
-                break;
-            case 'c':
-                modifierFunction = oklabFlip;
-                defaultSuffix = "OklabABFlipped";
-                break;
-            case '?':
-                break;
-            default: ;
-        }
+    if (!options) {
+        std::cerr << "There was an error parsing the command line.\n";
+        return EXIT_FAILURE;
     }
+
+    Options& opt = *options;
 
     std::streamsize size = 0;
     std::vector<char> buffer;
 
-    if(!loadBMP(filepath, buffer, size)) return 1;
-    if(outputFile.empty()) {
-        outputFile = filepath.replace(filepath.size() - 4, 4, "");
-        outputFile += defaultSuffix + ".bmp";
-    } else if(!std::filesystem::is_directory(std::filesystem::path(outputFile).parent_path())) std::filesystem::create_directories(std::filesystem::path(outputFile).parent_path());
+    if(!loadBMP(opt.filePath, buffer, size)) return 1;
 
     auto* header = (BMPHeader*)buffer.data();
     auto* infoHeader = (BMPDefaultInfoHeader*)(buffer.data() + sizeof(BMPHeader));
@@ -116,7 +73,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if(printInfo) {
+    if(opt.printInfo) {
         printBMPHeader(header);
         printBMPInfoHeader(infoHeader);
         return 0;
@@ -130,16 +87,23 @@ int main(int argc, char** argv) {
     uint32_t rowPaddingLen = 0;
     calculateBMPRow(*infoHeader, rowLen, rowPaddingLen);
 
+    bool err = false;
+    std::array<Modifier, 3> modifiers = parseColorSpace(opt, err);
+    if (err) {
+        std::cerr << "There was an error parsing the command line.\n";
+        return EXIT_FAILURE;
+    }
+
     for(uint32_t currentY = 0; currentY < height; ++currentY) {
         unsigned char* bufCutout = (unsigned char*)buffer.data() + header->dataOffset + currentY * (rowLen + rowPaddingLen);
         for(uint32_t currentX = 0; currentX < infoHeader->core.width; currentX++) {
             uint8_t* pixelPtr = bufCutout + currentX * byteCount;
             // modifierFunction is responsible for writing the values to the pointers
-            modifierFunction(&pixelPtr[2], &pixelPtr[1], &pixelPtr[0]);
+            opt.modifierFunc(&pixelPtr[2], &pixelPtr[1], &pixelPtr[0], modifiers, opt.allowOverflow);
         }
     }
 
-    std::ofstream inverted(outputFile, std::ios::binary);
+    std::ofstream inverted(opt.outputPath, std::ios::binary);
     inverted.write(buffer.data(), size);
     inverted.close();
 
