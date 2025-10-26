@@ -3,7 +3,7 @@
 #include <filesystem>
 #include "../datatypes/Options.h"
 
-inline std::optional<Options> parseCommandLineArgs(int argc, char** argv) {
+inline Options parseCommandLineArgs(int argc, char** argv) {
     constexpr static option longOptions[] = {
         {"file", required_argument, nullptr, 'f'},
         {"output", required_argument, nullptr, 'o'},
@@ -60,7 +60,7 @@ inline std::optional<Options> parseCommandLineArgs(int argc, char** argv) {
 
         if (error) {
             std::printf("Error at option %c\n", (char)opt);
-            return std::nullopt;
+            return {};
         }
     }
     return options;

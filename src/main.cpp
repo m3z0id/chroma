@@ -51,14 +51,12 @@ bool loadBMP(const std::string& filename, std::vector<char>& out, std::streamsiz
 }
 
 int main(int argc, char** argv) {
-    std::optional<Options> options = parseCommandLineArgs(argc, argv);
+    Options opt = parseCommandLineArgs(argc, argv);
 
-    if (!options) {
+    if (opt.colorSpace == ColorSpace::UNSET) {
         std::cerr << "There was an error parsing the command line.\n";
         return EXIT_FAILURE;
     }
-
-    Options& opt = *options;
 
     std::streamsize size = 0;
     std::vector<char> buffer;
