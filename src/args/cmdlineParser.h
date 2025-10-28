@@ -11,6 +11,7 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
         {"rgb", required_argument, nullptr, 'r'},
         {"hsl", required_argument, nullptr, 'u'},
         {"oklab", required_argument, nullptr, 'l'},
+        {"oklch", required_argument, nullptr, 'c'},
         {"allow-overflow", no_argument, nullptr, 'e'},
         {"verbose", no_argument, nullptr, 'v'},
         {nullptr, 0, nullptr, 0}
@@ -47,6 +48,7 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
             // Colorspace parsing
             case 'r':
             case 'u':
+            case 'c':
             case 'l':
                 options.colorSpace = (ColorSpace)opt;
                 options.modifierArg = optarg;

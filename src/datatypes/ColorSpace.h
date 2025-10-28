@@ -5,7 +5,8 @@ enum class ColorSpace {
     UNSET = 0,
     RGB = 'r',
     HSL = 'u',
-    OKLAB = 'l'
+    OKLAB = 'l',
+    OKLCH = 'c'
 };
 
 constexpr int getColorSpaceIndex(ColorSpace colorSpace) {
@@ -16,6 +17,8 @@ constexpr int getColorSpaceIndex(ColorSpace colorSpace) {
             return 1;
         case ColorSpace::OKLAB:
             return 2;
+        case ColorSpace::OKLCH:
+            return 3;
         default: throw std::out_of_range("Invalid color space");
     }
 }

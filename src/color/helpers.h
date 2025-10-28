@@ -8,7 +8,7 @@
 constexpr float OKLAB_EXPONENT = 2.4f;
 constexpr float OKLAB_EXPONENT_INVERSE = 1.0f/OKLAB_EXPONENT;
 
-inline std::tuple<float, float, float> getHSLFromRGB(uint8_t r, uint8_t g, uint8_t b) {
+inline std::tuple<float, float, float> RGBToHSL(uint8_t r, uint8_t g, uint8_t b) {
     float rf = (float)r / 255.0f, gf = (float)g / 255.0f, bf = (float)b / 255.0f;
     float max = std::max({rf, gf, bf});
     float min = std::min({rf, gf, bf});
@@ -29,7 +29,7 @@ inline std::tuple<float, float, float> getHSLFromRGB(uint8_t r, uint8_t g, uint8
 }
 
 
-inline std::tuple<uint8_t, uint8_t, uint8_t> getRGBFromHSL(float h, float s, float l) {
+inline std::tuple<uint8_t, uint8_t, uint8_t> HSLToRGB(float h, float s, float l) {
     s /= 100;
     l /= 100;
 
@@ -56,7 +56,7 @@ inline std::tuple<uint8_t, uint8_t, uint8_t> getRGBFromHSL(float h, float s, flo
 }
 
 
-inline std::tuple<float, float, float> rgbToOklab(uint8_t r, uint8_t g, uint8_t b) {
+inline std::tuple<float, float, float> RGBToOKLAB(uint8_t r, uint8_t g, uint8_t b) {
     auto toLinear = [](uint8_t channel) -> float {
         float normalized = static_cast<float>(channel) / 255.0f;
         return (normalized <= 0.04045f) ? normalized / 12.92f : std::pow((normalized + 0.055f) / 1.055f, OKLAB_EXPONENT);
@@ -81,7 +81,7 @@ inline std::tuple<float, float, float> rgbToOklab(uint8_t r, uint8_t g, uint8_t 
     return {L, A, B};
 }
 
-inline std::tuple<uint8_t, uint8_t, uint8_t> OklabToRGB(float L, float A, float B) {
+inline std::tuple<uint8_t, uint8_t, uint8_t> OKLABToRGB(float L, float A, float B) {
     float l = L + 0.3963377774f * A + 0.2158037573f * B;
     float m = L - 0.1055613458f * A - 0.0638541728f * B;
     float s = L - 0.0894841775f * A - 1.2914855480f * B;
@@ -104,6 +104,25 @@ inline std::tuple<uint8_t, uint8_t, uint8_t> OklabToRGB(float L, float A, float 
     uint8_t b = static_cast<uint8_t>(std::round(std::clamp(toSRGB(bLinear) * 255.0, 0.0, 255.0)));
 
     return {r, g, b};
+}
+
+inline std::tuple<float, float, float> RGBToOKLCh(uint8_t r, uint8_t g, uint8_t b) {
+    auto [L, A, B] = RGBToOKLAB(r, g, b);
+
+    float C = std::sqrt(A*A + B*B);
+    // H is in degrees
+    float h = std::atan2(B, A) * (180.0f / M_PI);
+
+    return {L, C, h};
+}
+
+inline std::tuple<uint8_t, uint8_t, uint8_t> OKLChToRGB(float L, float C, float h) {
+    h *= M_PI / 180.0f;
+
+    float A = C * std::cos(h);
+    float B = C * std::sin(h);
+
+    return OKLABToRGB(L, A, B);
 }
 
 constexpr int getRGBChannelIndex(const char ch) {
@@ -129,6 +148,15 @@ constexpr int getOKLABChannelIndex(const char ch) {
         case 'l': return 0;
         case 'a': return 1;
         case 'b': return 2;
+        default: throw std::out_of_range("Invalid channel character");
+    }
+}
+
+constexpr int getOKLChChannelIndex(const char ch) {
+    switch (ch) {
+        case 'l': return 0;
+        case 'c': return 1;
+        case 'h': return 2;
         default: throw std::out_of_range("Invalid channel character");
     }
 }

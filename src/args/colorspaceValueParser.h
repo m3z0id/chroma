@@ -1,6 +1,5 @@
 #pragma once
 #include <algorithm>
-#include <unordered_map>
 #include <functional>
 #include <cstdint>
 #include <cmath>
@@ -8,11 +7,7 @@
 #include "../datatypes/Options.h"
 #include "../color/colorModifiers.h"
 
-const std::unordered_map<ColorSpace, std::string> VALID_CHANNELS_MAP = {
-    {ColorSpace::RGB, "RGBrgb"},
-    {ColorSpace::HSL, "HSLhsl"},
-    {ColorSpace::OKLAB, "LABlab"}
-};
+const std::array<std::string, 4> VALID_CHANNELS_MAP = {"RGBrgb", "HSLhsl", "LABlab", "LCHlch"};
 
 inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorSpace, const char channel) {
     Modifier mod{};
@@ -28,7 +23,7 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
             mod.operation = Operation::ADD;
             break;
         default:
-            if (isdigit(arg.at(0)) || VALID_CHANNELS_MAP.at(colorSpace).contains(arg)) mod.operation = Operation::SET;
+            if (isdigit(arg.at(0)) || VALID_CHANNELS_MAP.at(getColorSpaceIndex(colorSpace)).contains(arg)) mod.operation = Operation::SET;
             else {
                 std::println("Error while parsing channel argument value");
                 return {};
@@ -39,7 +34,7 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
     std::string numberStr = arg.substr(numberParseStartIndex);
     const char numberChar = numberStr.at(0);
     if (!isdigit(numberChar) && numberChar != '+' && numberChar != '-') {
-        if (VALID_CHANNELS_MAP.at(colorSpace).contains(numberChar)) {
+        if (VALID_CHANNELS_MAP.at(getColorSpaceIndex(colorSpace)).contains(numberChar)) {
             mod.modifierChannel = numberChar;
             if (arg.at(0) == '-') mod.modifierChannel = -mod.modifierChannel;
         }
@@ -60,7 +55,7 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
     mod.difference = std::stof(numberStr.substr(0, idx));
     if (idx == numberStr.size()) return mod;
 
-    if (!(colorSpace == ColorSpace::HSL && channel == 'h')) {
+    if (!((colorSpace == ColorSpace::HSL || colorSpace == ColorSpace::OKLCH) && channel == 'h')) {
         std::println("Ignoring units", arg);
         return mod;
     }
@@ -77,10 +72,11 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
 }
 
 inline std::array<Modifier, 3> parseColorSpace(Options& options, bool& err) {
-    const std::array<std::function<void(uint8_t*, uint8_t*, uint8_t*, std::array<Modifier, 3>&, bool)>, 3> colorSpaceValues = {
+    const std::array<std::function<void(uint8_t*, uint8_t*, uint8_t*, std::array<Modifier, 3>&, bool)>, 4> colorSpaceValues = {
         modifyRGB,
         modifyHSL,
-        modifyOKLAB
+        modifyOKLAB,
+        modifyOKLCh
     };
 
     std::string channelsSeen;
@@ -99,7 +95,7 @@ inline std::array<Modifier, 3> parseColorSpace(Options& options, bool& err) {
         const bool upper = token.at(0) > 64 && token.at(0) < 97;
         error = token.length() < 3 ||
             token.at(1) != ':' ||
-            (!VALID_CHANNELS_MAP.at(options.colorSpace).contains(token.at(0)) && !channelsSeen.contains(token.at(0)));
+            (!VALID_CHANNELS_MAP.at(getColorSpaceIndex(options.colorSpace)).contains(token.at(0)) && !channelsSeen.contains(token.at(0)));
 
         if (error) {
             std::println("Error parsing color space");

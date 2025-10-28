@@ -53,7 +53,7 @@ void modifyRGB(uint8_t* r, uint8_t* g, uint8_t* b, const std::array<Modifier, 3>
 }
 
 void modifyHSL(uint8_t* r, uint8_t* g, uint8_t* b, const std::array<Modifier, 3>& mods, const bool overflowAllowed) {
-    auto [h, s, l] = getHSLFromRGB(*r, *g, *b);
+    auto [h, s, l] = RGBToHSL(*r, *g, *b);
 
     std::array<Triple<float*, float, float>, 3> channels = {{
         {&h, h, 360.0f},
@@ -104,11 +104,11 @@ void modifyHSL(uint8_t* r, uint8_t* g, uint8_t* b, const std::array<Modifier, 3>
         if (modifierNegative) modifierChannel.second = -modifierChannel.second;
     }
 
-    std::tie(*r, *g, *b) = getRGBFromHSL(h, s, l);
+    std::tie(*r, *g, *b) = HSLToRGB(h, s, l);
 }
 
 void modifyOKLAB(uint8_t* r, uint8_t* g, uint8_t* b, const std::array<Modifier, 3>& mods, const bool overflowAllowed) {
-    auto [l, a, b_] = rgbToOklab(*r, *g, *b);
+    auto [l, a, b_] = RGBToOKLAB(*r, *g, *b);
 
     std::array<Quadruple<float*, float, float, float>, 3> channels = {{
         {&l, l, 0, 1},
@@ -154,5 +154,55 @@ void modifyOKLAB(uint8_t* r, uint8_t* g, uint8_t* b, const std::array<Modifier, 
         if (modifierNegative) modifierChannel.second = -modifierChannel.second;
     }
 
-    std::tie(*r, *g, *b) = OklabToRGB(l, a, b_);
+    std::tie(*r, *g, *b) = OKLABToRGB(l, a, b_);
+}
+
+void modifyOKLCh(uint8_t* r, uint8_t* g, uint8_t* b, const std::array<Modifier, 3>& mods, const bool overflowAllowed) {
+    auto [l, c, h] = RGBToOKLCh(*r, *g, *b);
+
+    std::array<Quadruple<float*, float, float, float>, 3> channels = {{
+        {&l, l, 0, 1},
+        {&c, c, 0.0f, 0.4f},
+        {&h, h, 0.f, 360.0f}
+    }};
+    Quadruple<float*, float, float, float> invalid = {nullptr, 0.0f, 0.0f, 0.0f};
+
+    for (const auto& mod : mods) {
+        if (mod.operation == Operation::INVALID) continue;
+
+        bool modifierNegative = false;
+        Quadruple<float*, float, float, float>& editChannel = channels.at(getOKLChChannelIndex(mod.editChannel));
+        Quadruple<float*, float, float, float>& modifierChannel = mod.modifierChannel != 0 ? channels.at(getOKLChChannelIndex(std::abs(mod.modifierChannel))) : invalid;
+        float* currentChannel = editChannel.first;
+
+        if ((modifierNegative = mod.modifierChannel < 0)) modifierChannel.second = -modifierChannel.second;
+
+        switch (mod.operation) {
+            case Operation::ADD:
+                if (overflowAllowed) *currentChannel += modifierChannel.second;
+                else *currentChannel = std::clamp(*currentChannel + modifierChannel.second, editChannel.third, editChannel.fourth);
+
+                break;
+
+            case Operation::INVERT:
+                if (mod.modifierChannel != 0) *currentChannel = editChannel.fourth - modifierChannel.second;
+                else *currentChannel = editChannel.fourth - mod.difference;
+
+                break;
+
+            case Operation::SET:
+                if (mod.modifierChannel != 0) *currentChannel = modifierChannel.second;
+                else if (overflowAllowed) *currentChannel = mod.difference;
+                else *currentChannel = std::clamp(mod.difference, editChannel.third, editChannel.fourth);
+
+                break;
+
+            case Operation::INVALID:
+            default:
+                break;
+        }
+        if (modifierNegative) modifierChannel.second = -modifierChannel.second;
+    }
+
+    std::tie(*r, *g, *b) = OKLChToRGB(l, c, h);
 }
