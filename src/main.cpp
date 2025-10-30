@@ -1,4 +1,3 @@
-#include <getopt.h>
 #include <cstdint>
 #include <iostream>
 #include <string>
