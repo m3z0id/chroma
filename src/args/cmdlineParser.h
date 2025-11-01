@@ -1,7 +1,7 @@
 #pragma once
-#include "../datatypes/Options.h"
 #include <filesystem>
 #include <getopt.h>
+#include "../datatypes/Options.h"
 
 inline Options parseCommandLineArgs(int argc, char** argv) {
     constexpr static option longOptions[] = {
@@ -20,7 +20,7 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
 
     int opt;
     int optIndex;
-    while ((opt = getopt_long(argc, argv, "f:o:r:u:l:i", longOptions, &optIndex)) != -1) {
+    while ((opt = getopt_long(argc, argv, "f:o:r:u:l:c:iv", longOptions, &optIndex)) != -1) {
         bool error = false;
         switch (opt) {
             // File parsing

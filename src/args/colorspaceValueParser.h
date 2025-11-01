@@ -1,12 +1,12 @@
 #pragma once
-#include "../Global.h"
-#include "../color/colorModifiers.h"
-#include "../datatypes/Options.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <functional>
 #include <sstream>
+#include "../Global.h"
+#include "../color/colorModifiers.h"
+#include "../datatypes/Options.h"
 
 const std::array<std::string, 4> VALID_CHANNELS_MAP = {"RGBrgb", "HSLhsl", "LABlab", "LCHlch"};
 

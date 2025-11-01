@@ -1,9 +1,8 @@
 #pragma once
 #include <algorithm>
 #include <cmath>
-#include <tuple>
 #include <cstdint>
-#include <stdexcept>
+#include <tuple>
 
 constexpr float OKLAB_EXPONENT = 2.4f;
 constexpr float OKLAB_EXPONENT_INVERSE = 1.0f/OKLAB_EXPONENT;
