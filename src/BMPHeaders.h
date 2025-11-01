@@ -1,8 +1,10 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
+#include <ranges>
 #include <sstream>
 
 #pragma pack(push, 1)
@@ -108,17 +110,8 @@ void printBMPHeader(const BMPHeader* header) {
 }
 
 void printBMPInfoHeader(const BMPDefaultInfoHeader* info) {
-    std::unordered_map<uint32_t, std::string> headerSizeMap {
-        {sizeof(BMPCoreHeader), "Core Header"},
-        {sizeof(BMPInfoHeader), "Info Header v1"},
-        {sizeof(BMPInfoHeaderV2), "Info Header v2"},
-        {sizeof(BMPInfoHeaderV3), "Info Header v3"},
-        {sizeof(BMPInfoHeaderV4), "Info Header v4"},
-        {sizeof(BMPInfoHeaderV5), "Info Header v5"},
-    };
-
     std::cout << "=== BMP Info Header ===\n";
-    std::cout << "Header Size        : " << info->core.size << " bytes (" << headerSizeMap[info->core.size] << ")\n";
+    std::cout << "Header Size        : " << info->core.size << " bytes\n";
     if(info->core.size == sizeof(BMPCoreHeader)) {
         std::cout << "Image Width        : " << info->core.width << " px\n";
         std::cout << "Image Height       : " << info->core.height << " px\n";
@@ -174,7 +167,7 @@ void printBMPInfoHeader(const BMPDefaultInfoHeader* info) {
 bool checkBMPValidity(const BMPHeader* header, const BMPDefaultInfoHeader* infoHeader, const std::size_t& fileSize) {
     std::array<uint32_t, 6> validSizes = {sizeof(BMPCoreHeader), sizeof(BMPInfoHeader), sizeof(BMPInfoHeaderV2), sizeof(BMPInfoHeaderV3), sizeof(BMPInfoHeaderV4), sizeof(BMPInfoHeaderV5)};
     std::array<uint32_t, 6> validDataOffsets = {sizeof(BMPCoreHeader) + sizeof(BMPHeader), sizeof(BMPInfoHeader) + sizeof(BMPHeader), sizeof(BMPInfoHeaderV2) + sizeof(BMPHeader), sizeof(BMPInfoHeaderV3) + sizeof(BMPHeader), sizeof(BMPInfoHeaderV4) + sizeof(BMPHeader), sizeof(BMPInfoHeaderV5) + sizeof(BMPHeader)};
-    bool val = header->fileSize == fileSize && std::ranges::find(validSizes, infoHeader->core.size) != validSizes.end() && header->reserved == 0 && std::ranges::find(validDataOffsets, header->dataOffset) && header->dataOffset == infoHeader->core.size + sizeof(BMPHeader);
+    bool val = header->fileSize == fileSize && std::ranges::find(validSizes, infoHeader->core.size) != validSizes.end() && header->reserved == 0 && std::ranges::find(validDataOffsets, header->dataOffset) != validDataOffsets.end() && header->dataOffset == infoHeader->core.size + sizeof(BMPHeader);
 
     if(infoHeader->core.size <= sizeof(BMPCoreHeader))
         val = val && infoHeader->core.planes == 1;
