@@ -68,7 +68,7 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
     std::string units = numberStr.substr(idx);
     std::ranges::transform(units, units.begin(),
                            [](const unsigned char c){ return std::tolower(c); });
-    if (units == "rad") mod.difference *= 180 / M_PI;
+    if (units == "rad") mod.difference *= 180 / PI;
     else if (units == "pirad") mod.difference *= 180;
     else if (units == "deg") {}
     else std::cout << "Unknown units\n";

@@ -140,13 +140,13 @@ inline std::tuple<float, float, float> RGBToOKLCh(uint8_t r, uint8_t g, uint8_t 
 
     float C = std::sqrt(A*A + B*B);
     // H is in degrees
-    float h = std::atan2(B, A) * (180.0f / M_PI);
+    float h = std::atan2(B, A) * (180.0f / PI);
 
     return {L, C, h};
 }
 
 inline std::tuple<uint8_t, uint8_t, uint8_t> OKLChToRGB(float L, float C, float h) {
-    h *= M_PI / 180.0f;
+    h *= PI / 180.0f;
 
     float A = C * std::cos(h);
     float B = C * std::sin(h);

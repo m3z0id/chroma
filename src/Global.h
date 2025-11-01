@@ -4,6 +4,7 @@
 #include <array>
 #include <stdexcept>
 
+constexpr float PI = 3.14159265358979323846f;
 constexpr std::array<std::array<float, 3>, 4> MAX_CHANNEL_VALS = {{
     {255.0f, 255.0f, 255.0f},
     {360.0f, 100.0f, 100.0f},
