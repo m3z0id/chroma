@@ -14,6 +14,5 @@ add_executable(chroma
         src/main.cpp
         src/color/colorModifiers.cpp
         src/color/helpers.h
-        src/datatypes/Triple.h
-        src/datatypes/Quadruple.h)
+        src/Global.h)
 

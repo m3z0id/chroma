@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
         for(uint32_t currentX = 0; currentX < infoHeader->core.width; currentX++) {
             uint8_t* pixelPtr = bufCutout + currentX * byteCount;
             // modifierFunction is responsible for writing the values to the pointers
-            opt.modifierFunc(&pixelPtr[2], &pixelPtr[1], &pixelPtr[0], modifiers, opt.allowOverflow);
+            opt.modifierFunc(&pixelPtr[2], &pixelPtr[1], &pixelPtr[0], modifiers);
         }
     }
 

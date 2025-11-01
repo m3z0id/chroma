@@ -1,11 +1,12 @@
 #pragma once
-#include <algorithm>
-#include <functional>
-#include <cstdint>
-#include <cmath>
-#include <sstream>
-#include "../datatypes/Options.h"
+#include "../Global.h"
 #include "../color/colorModifiers.h"
+#include "../datatypes/Options.h"
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <functional>
+#include <sstream>
 
 const std::array<std::string, 4> VALID_CHANNELS_MAP = {"RGBrgb", "HSLhsl", "LABlab", "LCHlch"};
 
@@ -53,6 +54,10 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
     }
 
     mod.difference = std::stof(numberStr.substr(0, idx));
+    if (colorSpace != ColorSpace::RGB) {
+        std::tuple<float*, float, float> editChannel = {nullptr, 0.0f, getMaxChannelValue(colorSpace, channel)};
+        wrapAround(&mod.difference, editChannel);
+    }
     if (idx == numberStr.size()) return mod;
 
     if (!((colorSpace == ColorSpace::HSL || colorSpace == ColorSpace::OKLCH) && channel == 'h')) {
@@ -63,8 +68,8 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
     std::string units = numberStr.substr(idx);
     std::ranges::transform(units, units.begin(),
                            [](const unsigned char c){ return std::tolower(c); });
-    if (units == "rad") mod.difference /= M_PI * 180;
-    else if (units == "pirad") mod.difference /= 180;
+    if (units == "rad") mod.difference *= 180 / M_PI;
+    else if (units == "pirad") mod.difference *= 180;
     else if (units == "deg") {}
     else std::println("Unknown units");
 
@@ -72,7 +77,7 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
 }
 
 inline std::array<Modifier, 3> parseColorSpace(Options& options, bool& err) {
-    const std::array<std::function<void(uint8_t*, uint8_t*, uint8_t*, std::array<Modifier, 3>&, bool)>, 4> colorSpaceValues = {
+    const std::array<std::function<void(uint8_t*, uint8_t*, uint8_t*, std::array<Modifier, 3>&)>, 4> colorSpaceValues = {
         modifyRGB,
         modifyHSL,
         modifyOKLAB,

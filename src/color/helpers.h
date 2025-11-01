@@ -39,6 +39,10 @@ inline float fcbrt(const float a) {
     return (1.0f / 3.0f) * (a / (x * x) + (x + x));
 }
 
+inline float ffmod(const float x, const float y) {
+    return x - y * std::floor(x / y);
+}
+
 inline std::tuple<float, float, float> RGBToHSL(uint8_t r, uint8_t g, uint8_t b) {
     float rf = (float)r / 255.0f, gf = (float)g / 255.0f, bf = (float)b / 255.0f;
     float max = std::max({rf, gf, bf});
@@ -47,7 +51,7 @@ inline std::tuple<float, float, float> RGBToHSL(uint8_t r, uint8_t g, uint8_t b)
 
     float h = 0.0f;
     if (delta != 0.0f) {
-        if (max == rf) h = 60.0f * std::fmod(((gf - bf) / delta), 6.0f);
+        if (max == rf) h = 60.0f * ffmod(((gf - bf) / delta), 6.0f);
         else if (max == gf) h = 60.0f * (((bf - rf) / delta) + 2.0f);
         else h = 60.0f * (((rf - gf) / delta) + 4.0f);
     }
@@ -64,11 +68,11 @@ inline std::tuple<uint8_t, uint8_t, uint8_t> HSLToRGB(float h, float s, float l)
     s /= 100;
     l /= 100;
 
-    h = std::fmod(h, 360.0f);
+    h = ffmod(h, 360.0f);
     if (h < 0.0f) h += 360.0f;
 
     float c = (1.0f - std::abs(2.0f * l - 1.0f)) * s;
-    float x = c * (1.0f - std::abs(std::fmod(h / 60.0f, 2.0f) - 1.0f));
+    float x = c * (1.0f - std::abs(ffmod(h / 60.0f, 2.0f) - 1.0f));
     float m = l - c / 2.0f;
 
     float r = 0, g = 0, b = 0;
@@ -80,7 +84,7 @@ inline std::tuple<uint8_t, uint8_t, uint8_t> HSLToRGB(float h, float s, float l)
     else { r = c; b = x; }
 
     auto toByte = [](float val) -> uint8_t {
-        return static_cast<uint8_t>(std::round(std::clamp(val * 255.0, 0.0, 255.0)));
+        return (uint8_t)std::round(std::clamp(val * 255.0, 0.0, 255.0));
     };
 
     return {toByte(r + m), toByte(g + m), toByte(b + m)};
@@ -149,40 +153,4 @@ inline std::tuple<uint8_t, uint8_t, uint8_t> OKLChToRGB(float L, float C, float 
     float B = C * std::sin(h);
 
     return OKLABToRGB(L, A, B);
-}
-
-constexpr int getRGBChannelIndex(const char ch) {
-    switch (ch) {
-        case 'r': return 0;
-        case 'g': return 1;
-        case 'b': return 2;
-        default: throw std::out_of_range("Invalid channel character");
-    }
-}
-
-constexpr int getHSLChannelIndex(const char ch) {
-    switch (ch) {
-        case 'h': return 0;
-        case 's': return 1;
-        case 'l': return 2;
-        default: throw std::out_of_range("Invalid channel character");
-    }
-}
-
-constexpr int getOKLABChannelIndex(const char ch) {
-    switch (ch) {
-        case 'l': return 0;
-        case 'a': return 1;
-        case 'b': return 2;
-        default: throw std::out_of_range("Invalid channel character");
-    }
-}
-
-constexpr int getOKLChChannelIndex(const char ch) {
-    switch (ch) {
-        case 'l': return 0;
-        case 'c': return 1;
-        case 'h': return 2;
-        default: throw std::out_of_range("Invalid channel character");
-    }
 }

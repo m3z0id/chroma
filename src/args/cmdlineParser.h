@@ -1,7 +1,7 @@
 #pragma once
-#include <getopt.h>
-#include <filesystem>
 #include "../datatypes/Options.h"
+#include <filesystem>
+#include <getopt.h>
 
 inline Options parseCommandLineArgs(int argc, char** argv) {
     constexpr static option longOptions[] = {
@@ -12,7 +12,6 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
         {"hsl", required_argument, nullptr, 'u'},
         {"oklab", required_argument, nullptr, 'l'},
         {"oklch", required_argument, nullptr, 'c'},
-        {"allow-overflow", no_argument, nullptr, 'e'},
         {"verbose", no_argument, nullptr, 'v'},
         {nullptr, 0, nullptr, 0}
     };
@@ -21,7 +20,7 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
 
     int opt;
     int optIndex;
-    while ((opt = getopt_long(argc, argv, "f:o:r:u:l:ie", longOptions, &optIndex)) != -1) {
+    while ((opt = getopt_long(argc, argv, "f:o:r:u:l:i", longOptions, &optIndex)) != -1) {
         bool error = false;
         switch (opt) {
             // File parsing
@@ -40,9 +39,6 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
                 break;
             case 'v':
                 options.verbose = true;
-                break;
-            case 'e':
-                options.allowOverflow = true;
                 break;
 
             // Colorspace parsing
