@@ -1,6 +1,6 @@
 # Chroma
 
-Chroma is a Linux-only (for now) blazingly fast command-line tool for manipulating BMP images. It allows you to add filters in different color spaces and save the result to a new file.
+Chroma is a blazingly fast command-line tool for manipulating BMP images. It allows you to add filters in different color spaces and save the result to a new file.
 
 ## Features
 
