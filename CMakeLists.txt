@@ -30,12 +30,15 @@ add_executable(chroma
 
 # Windows-specific includes
 if(WIN32)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared library (produces getopt.dll and getopt.lib)")
+    set(BUILD_STATIC_LIBS ON CACHE BOOL "Build static library (produces getopt_static.lib)")
+    set(BUILD_TESTING OFF CACHE BOOL "Enable tests for both shared and static libraries")
     FetchContent_Declare(
             getopt_win
             GIT_REPOSITORY https://github.com/ludvikjerabek/getopt-win.git
             GIT_TAG        v2.42.0
     )
     FetchContent_MakeAvailable(getopt_win)
-    target_sources(chroma PRIVATE ${getopt_win_SOURCE_DIR}/getopt.c)
+    target_link_libraries(chroma PRIVATE getopt_static)
     target_include_directories(chroma PRIVATE ${getopt_win_SOURCE_DIR})
 endif()
