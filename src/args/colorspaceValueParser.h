@@ -107,7 +107,8 @@ inline std::array<Modifier, 3> parseColorSpace(Options& options, bool& err) {
             return {};
         }
 
-        channelsSeen.append(std::format("{}{}", token.at(0), upper ? (char)(token.at(0) + 32) : (char)(token.at(0) - 32)));
+        channelsSeen.append(token, 1);
+        channelsSeen.append(upper ? (char)(token.at(0) + 32) : (char)(token.at(0) - 32), 1);
 
         const std::string& mod = token.substr(2);
         modifiers[i - 1] = parseModifierArg(mod, options.colorSpace, token.at(0));
