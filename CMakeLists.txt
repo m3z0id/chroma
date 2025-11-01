@@ -11,7 +11,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Compiler flags
 if(MSVC)
-    add_compile_options(/W4)
     set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Od /RTC1")
     set(CMAKE_CXX_FLAGS_RELEASE "/O2 /fp:fast")
 else()
