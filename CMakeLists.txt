@@ -38,6 +38,7 @@ if(WIN32)
             GIT_TAG        v2.42.0
     )
     FetchContent_MakeAvailable(getopt_win)
-    target_link_libraries(chroma PRIVATE getopt_static)
+    target_link_libraries(myprogram PRIVATE getopt::getopt_static)
+    target_compile_definitions(myprogram PRIVATE STATIC_GETOPT)
     target_include_directories(chroma PRIVATE ${getopt_win_SOURCE_DIR})
 endif()
