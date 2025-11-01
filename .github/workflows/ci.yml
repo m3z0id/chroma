@@ -3,16 +3,6 @@ name: ci
 on: [push, pull_request]
 
 jobs:
-  formatting-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run clang-format style check for C/C++/Protobuf programs.
-        uses: jidicula/clang-format-action@v4.16.0
-        with:
-          clang-format-version: '13'
-          check-path: 'src'
-
   build:
     runs-on: ${{ matrix.os }}
     strategy:

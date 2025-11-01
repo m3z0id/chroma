@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <print>
-#include <sstream>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
 
 typedef struct __attribute((packed)) s_BMPChannelEndpoint {
     uint32_t x;
@@ -99,10 +99,10 @@ std::string fixed16_16ToString(uint32_t fx) {
 }
 
 void printBMPHeader(const BMPHeader* header) {
-    std::println("=== BMP Header ===");
-    std::println("Signature      : 0x{:04X}", header->signature);
-    std::println("File Size      : {} bytes", header->fileSize);
-    std::println("Data Offset    : {} bytes", header->dataOffset);
+    std::cout << "=== BMP Header ===\n";
+    std::cout << "Signature      : 0x" << std::hex << std::uppercase << std::setw(4) << std::setfill('0') << header->signature << std::dec << "\n";
+    std::cout << "File Size      : " << header->fileSize << " bytes\n";
+    std::cout << "Data Offset    : " << header->dataOffset << " bytes\n";
 }
 
 void printBMPInfoHeader(const BMPDefaultInfoHeader* info) {
@@ -115,39 +115,45 @@ void printBMPInfoHeader(const BMPDefaultInfoHeader* info) {
         {sizeof(BMPInfoHeaderV5), "Info Header v5"},
     };
 
-    std::println("=== BMP Info Header ===");
-    std::println("Header Size        : {} bytes ({})", info->core.size, headerSizeMap[info->core.size]);
+    std::cout << "=== BMP Info Header ===\n";
+    std::cout << "Header Size        : " << info->core.size << " bytes (" << headerSizeMap[info->core.size] << ")\n";
     if(info->core.size == sizeof(BMPCoreHeader)) {
-        std::println("Image Width        : {} px", info->core.width);
-        std::println("Image Height       : {} px", info->core.height);
-        std::println("Bits per pixel:    : {}", info->core.bitCount);
+        std::cout << "Image Width        : " << info->core.width << " px\n";
+        std::cout << "Image Height       : " << info->core.height << " px\n";
+        std::cout << "Bits per pixel     : " << info->core.bitCount << "\n";
     } else {
-        std::println("Image Width        : {} px", info->v1.width);
-        std::println("Image Height       : {} px", info->v1.height);
-        std::println("Color Planes       : {}", info->v1.planes);
-        std::println("Bits per Pixel     : {}", info->v1.bitCount);
-        std::println("Compression        : {}", info->v1.compression);
-        std::println("Image Size         : {} bytes", info->v1.imageSize);
-        std::println("X Pixels per Meter : {}", info->v1.xPixelsPerM);
-        std::println("Y Pixels per Meter : {}", info->v1.yPixelsPerM);
-        std::println("Colors Used        : {}", info->v1.colorsUsed);
-        std::println("Important Colors   : {}", info->v1.colorsImportant);
+        std::cout << "Image Width        : " << info->v1.width << " px\n";
+        std::cout << "Image Height       : " << info->v1.height << " px\n";
+        std::cout << "Color Planes       : " << info->v1.planes << "\n";
+        std::cout << "Bits per Pixel     : " << info->v1.bitCount << "\n";
+        std::cout << "Compression        : " << info->v1.compression << "\n";
+        std::cout << "Image Size         : " << info->v1.imageSize << " bytes\n";
+        std::cout << "X Pixels per Meter : " << info->v1.xPixelsPerM << "\n";
+        std::cout << "Y Pixels per Meter : " << info->v1.yPixelsPerM << "\n";
+        std::cout << "Colors Used        : " << info->v1.colorsUsed << "\n";
+        std::cout << "Important Colors   : " << info->v1.colorsImportant << "\n";
     }
     if(info->core.size >= sizeof(BMPInfoHeaderV2)) {
-        std::println("Red Mask           : 0x{:08X}", info->v2.redMask);
-        std::println("Green Mask         : 0x{:08X}", info->v2.greenMask);
-        std::println("Blue Mask          : 0x{:08X}", info->v2.blueMask);
+        std::cout << "Red Mask           : 0x" << std::hex << std::setw(8) << std::setfill('0') << info->v2.redMask << "\n";
+        std::cout << "Green Mask         : 0x" << std::setw(8) << info->v2.greenMask << "\n";
+        std::cout << "Blue Mask          : 0x" << std::setw(8) << info->v2.blueMask << std::dec << "\n";
     }
     if(info->core.size >= sizeof(BMPInfoHeaderV3)) {
-        std::println("Alpha Mask         : 0x{:08X}", info->v3.alphaMask);
+        std::cout << "Alpha Mask         : 0x" << std::hex << std::setw(8) << std::setfill('0') << info->v3.alphaMask << std::dec << "\n";
     }
     if(info->core.size >= sizeof(BMPInfoHeaderV4)) {
-        std::println("Red Endpoint       : {}; {}; {}", fixed16_16ToString(info->v4.redEndpoint.x), fixed16_16ToString(info->v4.redEndpoint.y), fixed16_16ToString(info->v4.redEndpoint.z));
-        std::println("Red Gamma          : {}", fixed16_16ToString(info->v4.redGamma));
-        std::println("Green Endpoint     : {}; {}; {}", fixed16_16ToString(info->v4.greenEndpoint.x), fixed16_16ToString(info->v4.greenEndpoint.y), fixed16_16ToString(info->v4.greenEndpoint.z));
-        std::println("Green Gamma        : {}", fixed16_16ToString(info->v4.greenGamma));
-        std::println("Blue Endpoint      : {}; {}; {}", fixed16_16ToString(info->v4.blueEndpoint.x), fixed16_16ToString(info->v4.blueEndpoint.y), fixed16_16ToString(info->v4.blueEndpoint.z));
-        std::println("Blue Gamma         : {}", fixed16_16ToString(info->v4.blueGamma));
+        std::cout << "Red Endpoint       : " << fixed16_16ToString(info->v4.redEndpoint.x) << "; "
+                  << fixed16_16ToString(info->v4.redEndpoint.y) << "; "
+                  << fixed16_16ToString(info->v4.redEndpoint.z) << "\n";
+        std::cout << "Red Gamma          : " << fixed16_16ToString(info->v4.redGamma) << "\n";
+        std::cout << "Green Endpoint     : " << fixed16_16ToString(info->v4.greenEndpoint.x) << "; "
+                  << fixed16_16ToString(info->v4.greenEndpoint.y) << "; "
+                  << fixed16_16ToString(info->v4.greenEndpoint.z) << "\n";
+        std::cout << "Green Gamma        : " << fixed16_16ToString(info->v4.greenGamma) << "\n";
+        std::cout << "Blue Endpoint      : " << fixed16_16ToString(info->v4.blueEndpoint.x) << "; "
+                  << fixed16_16ToString(info->v4.blueEndpoint.y) << "; "
+                  << fixed16_16ToString(info->v4.blueEndpoint.z) << "\n";
+        std::cout << "Blue Gamma         : " << fixed16_16ToString(info->v4.blueGamma) << "\n";
     }
     if(info->core.size >= sizeof(BMPInfoHeaderV5)) {
         std::unordered_map<uint32_t, std::string> intents = {
@@ -157,9 +163,9 @@ void printBMPInfoHeader(const BMPDefaultInfoHeader* info) {
             {0x00000008, "Maintaining White Point"},
         };
 
-        std::println("Rendering Intent   : {} ({})", intents[info->v5.intent], info->v5.intent);
-        std::println("ICC Profile Offset : {}", info->v5.profileData);
-        std::println("ICC Profile Size   : {}", info->v5.profileSize);
+        std::cout << "Rendering Intent   : " << intents[info->v5.intent] << " (" << info->v5.intent << ")\n";
+        std::cout << "ICC Profile Offset : " << info->v5.profileData << "\n";
+        std::cout << "ICC Profile Size   : " << info->v5.profileSize << "\n";
     }
 }
 

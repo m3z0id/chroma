@@ -57,7 +57,7 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
         }
 
         if (error) {
-            std::printf("Error at option %c\n", (char)opt);
+            std::cerr << "Error at option " << (char)opt << "\n";
             return {};
         }
     }

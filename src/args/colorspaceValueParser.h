@@ -26,7 +26,7 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
         default:
             if (isdigit(arg.at(0)) || VALID_CHANNELS_MAP.at(getColorSpaceIndex(colorSpace)).contains(arg)) mod.operation = Operation::SET;
             else {
-                std::println("Error while parsing channel argument value");
+                std::cerr << "Error while parsing channel argument value\n";
                 return {};
             }
     }
@@ -61,7 +61,7 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
     if (idx == numberStr.size()) return mod;
 
     if (!((colorSpace == ColorSpace::HSL || colorSpace == ColorSpace::OKLCH) && channel == 'h')) {
-        std::println("Ignoring units", arg);
+        std::cout << "Ignoring units: " << arg << "\n";
         return mod;
     }
 
@@ -71,7 +71,7 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
     if (units == "rad") mod.difference *= 180 / M_PI;
     else if (units == "pirad") mod.difference *= 180;
     else if (units == "deg") {}
-    else std::println("Unknown units");
+    else std::cout << "Unknown units\n";
 
     return mod;
 }
@@ -103,7 +103,7 @@ inline std::array<Modifier, 3> parseColorSpace(Options& options, bool& err) {
             (!VALID_CHANNELS_MAP.at(getColorSpaceIndex(options.colorSpace)).contains(token.at(0)) && !channelsSeen.contains(token.at(0)));
 
         if (error) {
-            std::println("Error parsing color space");
+            std::cerr << "Error parsing color space\n";
             return {};
         }
 
