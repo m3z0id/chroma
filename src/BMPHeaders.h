@@ -5,20 +5,21 @@
 #include <iostream>
 #include <sstream>
 
-typedef struct __attribute((packed)) s_BMPChannelEndpoint {
+#pragma pack(push, 1)
+typedef struct s_BMPChannelEndpoint {
     uint32_t x;
     uint32_t y;
     uint32_t z;
 } BMPChannelEndpoint;
 
-typedef struct __attribute((packed)) s_BMPHeader {
+typedef struct s_BMPHeader {
     uint16_t signature;
     uint32_t fileSize;
     uint32_t reserved;
     uint32_t dataOffset;
 } BMPHeader;
 
-typedef struct __attribute((packed)) s_BMPCoreHeader {
+typedef struct s_BMPCoreHeader {
     uint32_t size;
     uint16_t width;
     uint16_t height;
@@ -26,7 +27,7 @@ typedef struct __attribute((packed)) s_BMPCoreHeader {
     uint16_t bitCount;
 } BMPCoreHeader;
 
-typedef struct __attribute((packed)) s_BMPInfoHeader {
+typedef struct s_BMPInfoHeader {
     uint32_t size;
     uint32_t width;
     uint32_t height;
@@ -40,19 +41,19 @@ typedef struct __attribute((packed)) s_BMPInfoHeader {
     uint32_t colorsImportant;
 } BMPInfoHeader;
 
-typedef struct __attribute((packed)) s_BMPInfoHeaderV2 {
+typedef struct s_BMPInfoHeaderV2 {
     BMPInfoHeader infoHeader;
     uint32_t redMask;
     uint32_t greenMask;
     uint32_t blueMask;
 } BMPInfoHeaderV2;
 
-typedef struct __attribute((packed)) s_BMPInfoHeaderV3 {
+typedef struct s_BMPInfoHeaderV3 {
     BMPInfoHeaderV2 v2InfoHeader;
     uint32_t alphaMask;
 } BMPInfoHeaderV3;
 
-typedef struct __attribute((packed)) s_BMPInfoHeaderV4 {
+typedef struct s_BMPInfoHeaderV4 {
     BMPInfoHeaderV3 v3InfoHeader;
     uint32_t colorSpaceType;
     BMPChannelEndpoint redEndpoint;
@@ -63,13 +64,14 @@ typedef struct __attribute((packed)) s_BMPInfoHeaderV4 {
     uint32_t blueGamma;
 } BMPInfoHeaderV4;
 
-typedef struct __attribute((packed)) s_BMPInfoHeaderV5 {
+typedef struct s_BMPInfoHeaderV5 {
     BMPInfoHeaderV4 v4InfoHeader;
     uint32_t intent;
     uint32_t profileData;
     uint32_t profileSize;
     uint32_t reserved;
 } BMPInfoHeaderV5;
+#pragma pack(pop)
 
 union BMPDefaultInfoHeader {
     BMPCoreHeader core;
