@@ -8,7 +8,7 @@
 #include "../color/colorModifiers.h"
 #include "../datatypes/Options.h"
 
-const std::array<std::string, 4> VALID_CHANNELS_MAP = {"RGBrgb", "HSLhsl", "LABlab", "LCHlch"};
+const std::array<std::string, 5> VALID_CHANNELS_MAP = {"RGBrgb", "HSLhsl", "LABlab", "LCHlch", "HSLhsl"};
 
 inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorSpace, const char channel) {
     Modifier mod{};
@@ -60,7 +60,7 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
     }
     if (idx == numberStr.size()) return mod;
 
-    if (!((colorSpace == ColorSpace::HSL || colorSpace == ColorSpace::OKLCH) && channel == 'h')) {
+    if (!((colorSpace == ColorSpace::HSL || colorSpace == ColorSpace::OKLCH || colorSpace == ColorSpace::OKHSL) && channel == 'h')) {
         std::cout << "Ignoring units: " << arg << "\n";
         return mod;
     }
@@ -77,11 +77,12 @@ inline Modifier parseModifierArg(const std::string& arg, const ColorSpace colorS
 }
 
 inline std::array<Modifier, 3> parseColorSpace(Options& options, bool& err) {
-    const std::array<std::function<void(uint8_t*, uint8_t*, uint8_t*, std::array<Modifier, 3>&)>, 4> colorSpaceValues = {
+    const std::array<std::function<void(uint8_t*, uint8_t*, uint8_t*, std::array<Modifier, 3>&)>, 5> colorSpaceValues = {
         modifyRGB,
         modifyHSL,
         modifyOKLAB,
-        modifyOKLCh
+        modifyOKLCh,
+        modifyOKHSL
     };
 
     std::string channelsSeen;

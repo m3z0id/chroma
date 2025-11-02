@@ -230,3 +230,61 @@ void modifyOKLCh(uint8_t *r, uint8_t *g, uint8_t *b, const std::array<Modifier, 
 
     std::tie(*r, *g, *b) = OKLChToRGB(l, c, h);
 }
+void modifyOKHSL(uint8_t* r, uint8_t* g, uint8_t* b, const std::array<Modifier, 3>& mods) {
+    auto [h, s, l] = RGBToOKHSL(*r, *g, *b);
+    std::array<std::tuple<float *, float, float>, 3> channels = {{{&h, h, getMaxChannelValue(ColorSpace::OKHSL, 'h')},
+                                                                  {&s, s, getMaxChannelValue(ColorSpace::OKHSL, 's')},
+                                                                  {&l, l, getMaxChannelValue(ColorSpace::OKHSL, 'l')}}};
+    std::tuple<float *, float, float> invalid = {nullptr, 0.0f, 0.0f};
+
+    for (const auto &mod : mods) {
+        if (mod.operation == Operation::INVALID)
+            continue;
+
+        bool modifierNegative = false;
+        std::tuple<float *, float, float> &editChannel = channels.at(getHSLChannelIndex(mod.editChannel));
+        std::tuple<float *, float, float> &modifierChannel =
+                mod.modifierChannel != 0 ? channels.at(getHSLChannelIndex(mod.modifierChannel)) : invalid;
+        float *currentChannel = std::get<0>(editChannel);
+
+        if ((modifierNegative = mod.modifierChannel < 0))
+            std::get<1>(modifierChannel) = -std::get<1>(modifierChannel);
+
+        switch (mod.operation) {
+        case Operation::ADD:
+            if (modifierChannel != invalid) {
+                if (mod.editChannel == 'h') {
+                    *currentChannel += std::get<1>(modifierChannel);
+                    wrapAround(currentChannel, editChannel);
+                } else
+                    *currentChannel = std::clamp(*currentChannel + std::get<1>(modifierChannel), 0.0f, std::get<2>(modifierChannel));
+            } else
+                *currentChannel += std::clamp(mod.difference, 0.0f, std::get<2>(editChannel));
+            break;
+
+        case Operation::INVERT:
+            if (modifierChannel != invalid)
+                *currentChannel = std::get<2>(editChannel) - std::get<1>(modifierChannel);
+            else
+                *currentChannel = std::get<2>(editChannel) - mod.difference;
+
+            break;
+
+        case Operation::SET:
+            if (modifierChannel != invalid)
+                *currentChannel = std::get<1>(modifierChannel);
+            else
+                *currentChannel = mod.difference;
+
+            break;
+
+        case Operation::INVALID:
+        default:
+            break;
+        }
+        if (modifierNegative)
+            std::get<1>(modifierChannel) = -std::get<1>(modifierChannel);
+    }
+
+    std::tie(*r, *g, *b) = OKHSLToRGB(h, s, l);
+}

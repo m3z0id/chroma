@@ -12,6 +12,7 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
         {"hsl", required_argument, nullptr, 'u'},
         {"oklab", required_argument, nullptr, 'l'},
         {"oklch", required_argument, nullptr, 'c'},
+        {"okhsl", required_argument, nullptr, 's'},
         {"verbose", no_argument, nullptr, 'v'},
 #ifdef TESTS
         {"tests", no_argument, nullptr, 't'},
@@ -21,9 +22,9 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
 
     Options options;
 #ifdef TESTS
-    constexpr char shortOpts[] = "f:o:r:u:l:c:ivt";
+    constexpr char shortOpts[] = "f:o:r:u:l:c:s:ivt";
 #else
-    constexpr char shortOpts[] = "f:o:r:u:l:c:iv";
+    constexpr char shortOpts[] = "f:o:r:u:l:c:s:iv";
 #endif
     int opt;
     int optIndex;
@@ -36,7 +37,6 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
                 options.filePath = optarg;
                 break;
             case 'o':
-                error = std::filesystem::is_regular_file(optarg);
                 options.outputPath = optarg;
                 break;
 
@@ -52,6 +52,7 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
             case 'r':
             case 'u':
             case 'c':
+            case 's':
             case 'l':
                 options.colorSpace = (ColorSpace)opt;
                 options.modifierArg = optarg;

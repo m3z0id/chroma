@@ -5,11 +5,12 @@
 #include <stdexcept>
 
 constexpr float PI = 3.14159265358979323846f;
-constexpr std::array<std::array<float, 3>, 4> MAX_CHANNEL_VALS = {{
+constexpr std::array<std::array<float, 3>, 5> MAX_CHANNEL_VALS = {{
     {255.0f, 255.0f, 255.0f},
     {360.0f, 100.0f, 100.0f},
     {1.0f, 0.5f, 0.5f},
-    {1.0f, 0.4f, 360.0f}
+    {1.0f, 0.4f, 360.0f},
+    {360.0f, 100.0f, 100.0f},
 }};
 
 constexpr int getRGBChannelIndex(const char ch) {
@@ -58,6 +59,8 @@ constexpr int getColorSpaceIndex(const ColorSpace colorSpace) {
     return 2;
   case ColorSpace::OKLCH:
     return 3;
+  case ColorSpace::OKHSL:
+      return 4;
   default: throw std::out_of_range("Invalid color space");
   }
 }
@@ -65,13 +68,14 @@ constexpr int getColorSpaceIndex(const ColorSpace colorSpace) {
 constexpr float getMaxChannelValue(const ColorSpace colorSpace, const char channel) {
   switch (colorSpace) {
   case ColorSpace::RGB:
-    return MAX_CHANNEL_VALS[getColorSpaceIndex(colorSpace)][getRGBChannelIndex(channel)];
+    return MAX_CHANNEL_VALS[0][getRGBChannelIndex(channel)];
+  case ColorSpace::OKHSL:
   case ColorSpace::HSL:
-    return MAX_CHANNEL_VALS[getColorSpaceIndex(colorSpace)][getHSLChannelIndex(channel)];
+    return MAX_CHANNEL_VALS[1][getHSLChannelIndex(channel)];
   case ColorSpace::OKLAB:
-    return MAX_CHANNEL_VALS[getColorSpaceIndex(colorSpace)][getOKLABChannelIndex(channel)];
+    return MAX_CHANNEL_VALS[2][getOKLABChannelIndex(channel)];
   case ColorSpace::OKLCH:
-    return MAX_CHANNEL_VALS[getColorSpaceIndex(colorSpace)][getOKLChChannelIndex(channel)];
+    return MAX_CHANNEL_VALS[3][getOKLChChannelIndex(channel)];
   default: throw std::out_of_range("Invalid color space");
   }
 }

@@ -5,5 +5,6 @@ enum class ColorSpace {
     RGB = 'r',
     HSL = 'u',
     OKLAB = 'l',
-    OKLCH = 'c'
+    OKLCH = 'c',
+    OKHSL = 's'
 };

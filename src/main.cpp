@@ -218,6 +218,41 @@ void testOKLChInvert(int& failedCount) {
     delete[] inputLocal;
 }
 
+void testOKHSLInvert(int& failedCount) {
+    auto inputLocal = new unsigned char[INPUT_SIZE];
+    std::memcpy(inputLocal, INPUT, INPUT_SIZE);
+
+    Options options = {
+        "",
+        "",
+        "h:~h;s:~s;l:~l",
+        modifyOKHSL,
+        ColorSpace::OKHSL,
+        false,
+        false
+    };
+
+    BMPHeader* header = nullptr;
+    BMPDefaultInfoHeader* infoHeader = nullptr;
+    parseHeaders(inputLocal, &header, &infoHeader);
+
+    bool err = false;
+    std::array<Modifier, 3> modifiers = parseColorSpace(options, err);
+    if (err) {
+        std::cerr << "OKHSL Invert FAILED at parsing\n";
+        delete[] inputLocal;
+        failedCount += 1;
+        return;
+    }
+
+    const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    modify(inputLocal, options, modifiers, infoHeader, header);
+    const std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    std::cout << "OKHSL Invert finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms\n";
+    delete[] inputLocal;
+}
+
 int runTests() {
     int failedCount = 0;
 
@@ -225,6 +260,7 @@ int runTests() {
     testHSLInvert(failedCount);
     testOKLABInvert(failedCount);
     testOKLChInvert(failedCount);
+    testOKHSLInvert(failedCount);
 
     return failedCount;
 }

@@ -154,3 +154,19 @@ inline std::tuple<uint8_t, uint8_t, uint8_t> OKLChToRGB(float L, float C, float 
 
     return OKLABToRGB(L, A, B);
 }
+
+inline std::tuple<float, float, float> RGBToOKHSL(uint8_t r, uint8_t g, uint8_t b) {
+    auto [L, C, h] = RGBToOKLCh(r, g, b);
+
+    float S = std::min(C / getMaxChannelValue(ColorSpace::OKLCH, 'c'), 1.0f);
+
+    return {h, S*100, L*100};
+}
+
+inline std::tuple<uint8_t, uint8_t, uint8_t> OKHSLToRGB(float H, float S, float L) {
+    S /= 100;
+    L /= 100;
+
+    float C = S * getMaxChannelValue(ColorSpace::OKLCH, 'c');
+    return OKLChToRGB(L, C, H);
+}
