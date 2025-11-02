@@ -15,4 +15,7 @@ typedef struct s_Options {
 
     bool printInfo = false;
     bool verbose = false;
+#ifdef TESTS
+    bool test = false;
+#endif
 } Options;

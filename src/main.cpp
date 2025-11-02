@@ -49,8 +49,194 @@ bool loadBMP(const std::string &filename, std::vector<char> &out, std::streamsiz
     return true;
 }
 
+void parseHeaders(const unsigned char* buffer, BMPHeader** header, BMPDefaultInfoHeader** infoHeader) {
+    *header = (BMPHeader*)buffer;
+    *infoHeader = (BMPDefaultInfoHeader*)(buffer + sizeof(BMPHeader));
+}
+
+void modify(unsigned char* buffer, const Options& opt, std::array<Modifier, 3>& mod, const BMPDefaultInfoHeader* const infoHeader, const BMPHeader* const header) {
+    const uint32_t height = infoHeader->core.size == sizeof(BMPCoreHeader) ? infoHeader->core.height : infoHeader->v1.height;
+    const uint16_t bitCount = infoHeader->core.size == sizeof(BMPCoreHeader) ? infoHeader->core.bitCount : infoHeader->v1.bitCount;
+
+    const uint32_t byteCount = bitCount / 8;
+    uint32_t rowLen = 0;
+    uint32_t rowPaddingLen = 0;
+    calculateBMPRow(*infoHeader, rowLen, rowPaddingLen);
+
+    for (uint32_t currentY = 0; currentY < height; ++currentY) {
+        unsigned char *bufCutout = buffer + header->dataOffset + currentY * (rowLen + rowPaddingLen);
+        for (uint32_t currentX = 0; currentX < infoHeader->core.width; currentX++) {
+            uint8_t *pixelPtr = bufCutout + currentX * byteCount;
+            // modifierFunction is responsible for writing the values to the pointers
+            opt.modifierFunc(&pixelPtr[2], &pixelPtr[1], &pixelPtr[0], mod);
+        }
+    }
+}
+
+#ifdef TESTS
+#include <chrono>
+#include <input.h>
+#include <cstring>
+
+void testRGBInvert(int& failedCount) {
+    auto inputLocal = new unsigned char[INPUT_SIZE];
+    std::memcpy(inputLocal, INPUT, INPUT_SIZE);
+
+    Options options = {
+        "",
+        "",
+        "r:~r;g:~g;b:~b",
+        modifyRGB,
+        ColorSpace::RGB,
+        false,
+        false
+    };
+    const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+    BMPHeader* header = nullptr;
+    BMPDefaultInfoHeader* infoHeader = nullptr;
+    parseHeaders(inputLocal, &header, &infoHeader);
+
+    bool err = false;
+    std::array<Modifier, 3> modifiers = parseColorSpace(options, err);
+    if (err) {
+        std::cerr << "RGB Invert FAILED at parsing\n";
+        delete[] inputLocal;
+        failedCount += 1;
+        return;
+    }
+
+    modify(inputLocal, options, modifiers, infoHeader, header);
+    const std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    std::cout << "RGB Invert finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms\n";
+    delete[] inputLocal;
+}
+
+void testHSLInvert(int& failedCount) {
+    auto inputLocal = new unsigned char[INPUT_SIZE];
+    std::memcpy(inputLocal, INPUT, INPUT_SIZE);
+
+    Options options = {
+        "",
+        "",
+        "h:~h;s:~s;l:~l",
+        modifyHSL,
+        ColorSpace::HSL,
+        false,
+        false
+    };
+
+    BMPHeader* header = nullptr;
+    BMPDefaultInfoHeader* infoHeader = nullptr;
+    parseHeaders(inputLocal, &header, &infoHeader);
+
+    bool err = false;
+    std::array<Modifier, 3> modifiers = parseColorSpace(options, err);
+    if (err) {
+        std::cerr << "HSL Invert FAILED at parsing\n";
+        delete[] inputLocal;
+        failedCount += 1;
+        return;
+    }
+
+    const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    modify(inputLocal, options, modifiers, infoHeader, header);
+    const std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    std::cout << "HSL Invert finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms\n";
+    delete[] inputLocal;
+}
+
+void testOKLABInvert(int& failedCount) {
+    auto inputLocal = new unsigned char[INPUT_SIZE];
+    std::memcpy(inputLocal, INPUT, INPUT_SIZE);
+
+    Options options = {
+        "",
+        "",
+        "l:~l;a:~a;b:~b",
+        modifyOKLAB,
+        ColorSpace::OKLAB,
+        false,
+        false
+    };
+
+    BMPHeader* header = nullptr;
+    BMPDefaultInfoHeader* infoHeader = nullptr;
+    parseHeaders(inputLocal, &header, &infoHeader);
+
+    bool err = false;
+    std::array<Modifier, 3> modifiers = parseColorSpace(options, err);
+    if (err) {
+        std::cerr << "OKLAB Invert FAILED at parsing\n";
+        delete[] inputLocal;
+        failedCount += 1;
+        return;
+    }
+
+    const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    modify(inputLocal, options, modifiers, infoHeader, header);
+    const std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    std::cout << "OKLAB Invert finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms\n";
+    delete[] inputLocal;
+}
+
+void testOKLChInvert(int& failedCount) {
+    auto inputLocal = new unsigned char[INPUT_SIZE];
+    std::memcpy(inputLocal, INPUT, INPUT_SIZE);
+
+    Options options = {
+        "",
+        "",
+        "l:~l;c:~c;h:~h",
+        modifyOKLCh,
+        ColorSpace::OKLCH,
+        false,
+        false
+    };
+
+    BMPHeader* header = nullptr;
+    BMPDefaultInfoHeader* infoHeader = nullptr;
+    parseHeaders(inputLocal, &header, &infoHeader);
+
+    bool err = false;
+    std::array<Modifier, 3> modifiers = parseColorSpace(options, err);
+    if (err) {
+        std::cerr << "OKLCh Invert FAILED at parsing\n";
+        delete[] inputLocal;
+        failedCount += 1;
+        return;
+    }
+
+    const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    modify(inputLocal, options, modifiers, infoHeader, header);
+    const std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    std::cout << "OKLCh Invert finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms\n";
+    delete[] inputLocal;
+}
+
+int runTests() {
+    int failedCount = 0;
+
+    testRGBInvert(failedCount);
+    testHSLInvert(failedCount);
+    testOKLABInvert(failedCount);
+    testOKLChInvert(failedCount);
+
+    return failedCount;
+}
+#endif
+
 int main(int argc, char **argv) {
     Options opt = parseCommandLineArgs(argc, argv);
+
+#ifdef TESTS
+    if (!opt.test) std::cout << "This build is intended for tests only, consider recompiling with proper flags.\n";
+    else return runTests();
+#endif
 
     if (opt.colorSpace == ColorSpace::UNSET) {
         std::cerr << "There was an error parsing the command line.\n";
@@ -63,8 +249,9 @@ int main(int argc, char **argv) {
     if (!loadBMP(opt.filePath, buffer, size))
         return 1;
 
-    auto *header = (BMPHeader *)buffer.data();
-    auto *infoHeader = (BMPDefaultInfoHeader *)(buffer.data() + sizeof(BMPHeader));
+    BMPHeader* header = nullptr;
+    BMPDefaultInfoHeader* infoHeader = nullptr;
+    parseHeaders((unsigned char*)buffer.data(), &header, &infoHeader);
 
     if (!checkBMPValidity(header, infoHeader, size)) {
         std::cerr << "Unsupported file\n";
@@ -77,14 +264,6 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    uint32_t height = infoHeader->core.size == sizeof(BMPCoreHeader) ? infoHeader->core.height : infoHeader->v1.height;
-    uint16_t bitCount = infoHeader->core.size == sizeof(BMPCoreHeader) ? infoHeader->core.bitCount : infoHeader->v1.bitCount;
-
-    uint32_t byteCount = bitCount / 8;
-    uint32_t rowLen = 0;
-    uint32_t rowPaddingLen = 0;
-    calculateBMPRow(*infoHeader, rowLen, rowPaddingLen);
-
     bool err = false;
     std::array<Modifier, 3> modifiers = parseColorSpace(opt, err);
     if (err) {
@@ -92,14 +271,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    for (uint32_t currentY = 0; currentY < height; ++currentY) {
-        unsigned char *bufCutout = (unsigned char *)buffer.data() + header->dataOffset + currentY * (rowLen + rowPaddingLen);
-        for (uint32_t currentX = 0; currentX < infoHeader->core.width; currentX++) {
-            uint8_t *pixelPtr = bufCutout + currentX * byteCount;
-            // modifierFunction is responsible for writing the values to the pointers
-            opt.modifierFunc(&pixelPtr[2], &pixelPtr[1], &pixelPtr[0], modifiers);
-        }
-    }
+    modify((unsigned char*)buffer.data(), opt, modifiers, infoHeader, header);
 
     std::ofstream inverted(opt.outputPath, std::ios::binary);
     inverted.write(buffer.data(), size);

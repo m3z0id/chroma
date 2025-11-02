@@ -3,7 +3,34 @@ name: ci
 on: [push, pull_request]
 
 jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest, macos-15-intel ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lukka/get-cmake@latest
+
+      - name: CMake
+        run: cmake -DCMAKE_BUILD_TYPE=Release -DCOMPILE_TESTS=ON -S . -B build
+
+      - name: Build
+        run: cmake --build build/ --config Release
+
+      - name: Run tests
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            build\\Release\\chroma.exe -t
+          else
+            build/chroma -t
+          fi
+        shell: bash
+
   build:
+    needs: test
+    if: success()
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:

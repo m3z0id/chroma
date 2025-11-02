@@ -13,14 +13,21 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
         {"oklab", required_argument, nullptr, 'l'},
         {"oklch", required_argument, nullptr, 'c'},
         {"verbose", no_argument, nullptr, 'v'},
+#ifdef TESTS
+        {"tests", no_argument, nullptr, 't'},
+#endif
         {nullptr, 0, nullptr, 0}
     };
 
     Options options;
-
+#ifdef TESTS
+    constexpr char shortOpts[] = "f:o:r:u:l:c:ivt";
+#else
+    constexpr char shortOpts[] = "f:o:r:u:l:c:iv";
+#endif
     int opt;
     int optIndex;
-    while ((opt = getopt_long(argc, argv, "f:o:r:u:l:c:iv", longOptions, &optIndex)) != -1) {
+    while ((opt = getopt_long(argc, argv, shortOpts, longOptions, &optIndex)) != -1) {
         bool error = false;
         switch (opt) {
             // File parsing
@@ -49,6 +56,12 @@ inline Options parseCommandLineArgs(int argc, char** argv) {
                 options.colorSpace = (ColorSpace)opt;
                 options.modifierArg = optarg;
                 break;
+
+#ifdef TESTS
+            case 't':
+                options.test = true;
+                break;
+#endif
 
             // Error handling
             case '?':

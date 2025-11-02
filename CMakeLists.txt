@@ -2,12 +2,29 @@ cmake_minimum_required(VERSION 3.15)
 project(chroma)
 include(FetchContent)
 
+# Enable tests
+option(COMPILE_TESTS "Compile tests for easy functional and performance checks" OFF)
+
 # Enable compile commands for tooling support
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Source files
+add_executable(chroma
+        src/main.cpp
+        src/color/colorModifiers.cpp
+        src/color/helpers.h
+        src/Global.h
+)
+
+# Tests
+if(COMPILE_TESTS)
+    target_include_directories(chroma PRIVATE ${CMAKE_SOURCE_DIR}/src/tests)
+    target_compile_definitions(chroma PRIVATE TESTS)
+endif (COMPILE_TESTS)
 
 # Compiler flags
 if(MSVC)
@@ -18,14 +35,6 @@ else()
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math")
 endif()
-
-# Source files
-add_executable(chroma
-        src/main.cpp
-        src/color/colorModifiers.cpp
-        src/color/helpers.h
-        src/Global.h
-)
 
 # Windows-specific includes
 if(WIN32)
